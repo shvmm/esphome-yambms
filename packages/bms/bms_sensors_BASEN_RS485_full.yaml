@@ -1,6 +1,6 @@
-# Updated : 2025.06.17
-# Version : 1.1.2
-# GitHub  : https://github.com/txubelaxu/esphome-jk-bms
+# Updated : 2025.10.14
+# Version : 1.1.4
+# GitHub  : https://github.com/GHswitt/esphome-basen
 
 # YamBMS ( Yet another multi-BMS Merging Solution )
 
@@ -47,6 +47,12 @@ binary_sensor:
     fault:
       id: bms${bms_id}_fault
       name: "${name} ${bms_name} fault"
+    charging_enabled:
+      id: bms${bms_id}_charging_allowed
+      name: "${name} ${bms_name} charging allowed"
+    discharging_enabled:
+      id: bms${bms_id}_discharging_allowed
+      name: "${name} ${bms_name} discharging allowed"
 
   # Balancing
   - platform: template
@@ -56,28 +62,14 @@ binary_sensor:
       float max_cell_voltage = id(bms${bms_id}_max_cell_voltage).state;
       float delta_cell_voltage = id(bms${bms_id}_delta_voltage_cell).state;
       float balance_trigger_voltage = id(bms${bms_id}_balance_trigger_voltage).state;
-      float balance_trigger_difference = id(bms${bms_id}_balance_trigger_difference).state;
-      if (max_cell_voltage < balance_trigger_voltage)
+      float balance_starting_voltage = id(bms${bms_id}_balance_starting_voltage).state;
+      if (max_cell_voltage < balance_starting_voltage)
         return false;
-      if (delta_cell_voltage >= balance_trigger_difference)
+      if (delta_cell_voltage >= balance_trigger_voltage)
         return true;
       return false;
     filters:
       - delayed_off: 300s
-
-  # Charging allowed
-  - platform: template
-    id: bms${bms_id}_charging_allowed
-    name: "${name} ${bms_name} charging allowed"
-    lambda: |-
-      return !id(bms${bms_id}_fault).state;
-    
-  # Discharging allowed
-  - platform: template
-    id: bms${bms_id}_discharging_allowed
-    name: "${name} ${bms_name} discharging allowed"
-    lambda: |-
-      return !id(bms${bms_id}_fault).state;
 
 sensor:
   - platform: basen_bms
@@ -262,11 +254,11 @@ sensor:
     ENV_UT_STOP:
       name: "${name} ${bms_name} ENV_UT_STOP"
     Balance_Start_Vol:
-      id: bms${bms_id}_balance_trigger_voltage
-      name: "${name} ${bms_name} balancing trigger voltage"
+      id: bms${bms_id}_balance_starting_voltage
+      name: "${name} ${bms_name} balancing starting voltage"
     Balance_Start_Diff:
-      id: bms${bms_id}_balance_trigger_difference
-      name: "${name} ${bms_name} Balance_Start_Diff"
+      id: bms${bms_id}_balance_trigger_voltage
+      name: "${name} ${bms_name} balance trigger voltage"
     Sleep_Cell_Volt:
       name: "${name} ${bms_name} Sleep_Cell_Volt"
     Shorts_Delay:
